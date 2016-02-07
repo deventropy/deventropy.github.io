@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+Copyright 2016 Development Entropy (deventropy.org) Contributors
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+-->
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<parent>
+		<groupId>org.deventropy.parent</groupId>
+		<artifactId>deventropy-parent</artifactId>
+		<version>1.0-beta.1-SNAPSHOT</version>
+	</parent>
+	<groupId>org.deventropy.site</groupId>
+	<artifactId>deventropy-github-io</artifactId>
+	<version>1.0-SNAPSHOT</version>
+	<packaging>pom</packaging>
+	<name>Deventropy Site</name>
+	<description>Deventropy Site sources</description>
+	<url>http://www.deventropy.org/</url>
+	<inceptionYear>2016</inceptionYear>
+	<scm>
+		<connection>scm:git:https://github.com/deventropy/deventropy.github.io.git</connection>
+		<developerConnection>scm:git:https://github.com/deventropy/deventropy.github.io.git</developerConnection>
+		<url>https://github.com/deventropy/deventropy.github.io</url>
+	</scm>
+	<issueManagement>
+		<system>GitHub</system>
+		<url>https://github.com/deventropy/deventropy.github.io/issues/</url>
+	</issueManagement>
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-site-plugin</artifactId>
+				<configuration>
+					<generateProjectInfo>false</generateProjectInfo>
+					<generateReports>false</generateReports>
+				</configuration>
+				<dependencies>
+					<!-- See https://github.com/andriusvelykis/reflow-maven-skin -->
+					<dependency>
+						<groupId>lt.velykis.maven.skins</groupId>
+						<artifactId>reflow-velocity-tools</artifactId>
+						<version>1.1.1</version>
+					</dependency>
+					<!-- Reflow skin requires Velocity >= 1.7  -->
+					<dependency>
+						<groupId>org.apache.velocity</groupId>
+						<artifactId>velocity</artifactId>
+						<version>1.7</version>
+					</dependency>
+				</dependencies>
+			</plugin>
+		</plugins>
+	</build>
+	<!-- Distribution Management, see http://veithen.github.io/2013/05/26/github-bintray-maven-release-plugin.html -->
+	<distributionManagement>
+		<site>
+			<id>gh-pages</id>
+			<name>GitHub Pages</name>
+			<url>scp://path.to.nowhere/</url>
+		</site>
+	</distributionManagement>
+</project>
