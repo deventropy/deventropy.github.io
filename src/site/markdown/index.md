@@ -49,11 +49,13 @@ The project uses [Coveralls'](http://coveralls.io/) free service for open source
 coverage. See the [organization's Coveralls page](https://coveralls.io/github/deventropy/) for build status and
 details.
 
+The project uses [Codacy's](https://www.codacy.com/) and [Coverity's](http://www.coverity.com/) free service for open
+source projects for static code analysis. See the individual project's badge link to see the project's Codacy and
+Coverity pages.
+
 The project uses [VersionEye's](https://www.versioneye.com/) free service for open source projects for tracking
 dependency and plugin versions. See the [organization's VersionEye page](https://www.versioneye.com/organisations/deventropy/projects)
 for the projects being tracked.
-
-Specific project's or modules also use specific additional resources including Coverity static code analysis.
 
 ### <a name="repository"></a>Binary Distribution Repository
 
