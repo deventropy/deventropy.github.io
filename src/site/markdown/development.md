@@ -285,6 +285,161 @@ $ tar czvf <artifactId>.tgz cov-int
 Upload the `<artifactId>.tgz` script created above to the Coverity project page.
 The `<artifactId>.tgz` and `cov-int` file / folder can be removed next.
 
+## Coveralls Setup
+
+The project is set up to upload Jacoco code coverage reports to [coveralls.io](https://coveralls.io/github/deventropy/)
+using the `org.eluder.coveralls:coveralls-maven-plugin` [plugin](https://github.com/trautonen/coveralls-maven-plugin).
+This plugin uses a repository token to gain access to the project. This token is not part of the POM file and is kept as
+an environment variable to be picked up by the plugin using:
+
+```xml
+<plugin>
+	<groupId>org.eluder.coveralls</groupId>
+	<artifactId>coveralls-maven-plugin</artifactId>
+	<configuration>
+		<repoToken>${env.COVERALLS_REPO_KEY}</repoToken>
+	</configuration>
+</plugin>
+```
+
+The actual property key used (instead of `COVERALLS_REPO_KEY`) can be found in each Top Level Project's `pom.xml`. 
+
+### Running Coveralls from Travis
+
+The `.travis.yml` file has the key encrypted and stored as a global variable:
+
+```
+env:
+    global:
+        # SHARED_UTILS_COVERALLS_REPO_KEY=<secret...>
+        - secure: "gbK0c3IbHze8..."
+```
+
+The key property is encrypted using the Travis client in the checked out `git` working directory:
+
+```
+travis encrypt SHARED_UTILS_COVERALLS_REPO_KEY=<secret...>
+```
+
+In the `.travis.yml`, the actual upload requires the `jacoco` report to be generated (as it creates the xml file used by
+the plugin to upload the coverage report) and the report is uploaded on successful builds:
+
+```
+after_success:
+    # Coverage report to coveralls.io (but not for pull requests)
+    - '[ "${TRAVIS_PULL_REQUEST}" = "false" ] && mvn clean test jacoco:report coveralls:report'
+```
+
+### Running Coveralls locally
+
+The Travis CI environment already has this value as an encrypted global variable (in `.travis.yml`); but if you need to
+run the coveralls report (and upload results) locally, do the following:
+
+```
+# Set the repository key environment variable (will not work as -DCOVERALLS_REPO_KEY=)
+$ export COVERALLS_REPO_KEY=<key_from_coveralls.io>
+$ mvn clean test jacoco:report coveralls:report
+```
+
+The actual property key used (instead of `COVERALLS_REPO_KEY`) can be found in each Top Level Project's `pom.xml`.
+
+## Codacy Static Code Analysis
+
+Some Deventropy projects use [Codacy's](https://www.codacy.com/app/deventropy) free service for open source projects for
+static code analysis. The link above will take you to the team page for all Deventropy projects (the link may not work
+unless you are logged into Codacy; each Top Level Project's badge links to the project's Codacy dashboard directly). The
+tool uses Git commits on GitHub for static code analysis and no additional steps are required for commits/builds.
+
+<!-- TODO: Add information about configuring Code Patterns on Codacy; sharing configs, etc. --> 
+
+The tool also supports adding test coverage information; that needs to be done from a build, either locally or from our
+CI builds at Travis CI. Codacy has has an [API Integration point](https://api.codacy.com/swagger#!/commit/saveCoverage)
+to send coverage information to be integrated into the code analysis information. They also provide a tool to upload
+coverage information from some standard code coverage tools.
+
+### Codacy client
+
+The [Codacy Coverage Reporter](https://github.com/codacy/codacy-coverage-reporter#setup) uses [JPM](http://jpm4j.org/)
+to install and maintain dependencies. The instructions on the Codacy Coverage Reporter GitHub project README page to
+install JPM do not work; instead use the instructions on the [JPM site](http://jpm4j.org/#!/md/linux). The instructions
+to install the Codacy tool however does work:
+
+```
+$ jpm install com.codacy:codacy-coverage-reporter:assembly
+```
+
+Since most, if not all, Deventropy projects are setup as Maven multi module projects; the coverage information either
+has to be merged into a single one or uploaded individually for each module. For the time being we have not been
+able to get Jacoco to generate a single report for a multi-module project; so we are left with uploading reports for
+individual modules:
+
+```
+$ codacy-coverage-reporter -l Java -r <module path>/target/site/jacoco/jacoco.xml --prefix <module path>/src/main/java/
+```
+
+This requires an environment variable `CODACY_PROJECT_TOKEN` set with the project API key from the Codacy project page.
+
+### Running coveralls locally
+
+JPM and Codacy are usually installed locally in a shared / super user mode:
+
+```
+$ curl -sL http://bit.ly/jpm4j > jpm4j.jar
+$ sudo java -jar jpm4j.jar -g init
+$ sudo jpm install com.codacy:codacy-coverage-reporter:assembly
+```
+
+__Note the last step might take a minute, and look like it is stuck__
+
+Export the key for the project, run the Jacoco reports and upload the reports for each module:
+
+```
+$ export CODACY_PROJECT_TOKEN=<secret...>
+$ mvn clean test jacoco:report
+# Repeat the following for each module
+$ codacy-coverage-reporter -l Java -r <module path>/target/site/jacoco/jacoco.xml --prefix <module path>/src/main/java/
+```
+
+<!--TODO Look to script this so as not to need to know the module names; or write a Maven plugin-->
+
+### Uploading coverage from Travis
+
+The Travis build config, `.travis.yml` is configured to generate and upload the coverage information for each build
+automatically.
+
+Install `JPM` and `codacy-coverage-reporter`; and update the `PATH` before the build:
+
+```
+before_install:
+    - 'mkdir --parents target/jpm && curl -sL http://bit.ly/jpm4j > target/jpm/jpm4j.jar && java -jar target/jpm/jpm4j.jar -u init && export PATH=$PATH:$HOME/jpm/bin && jpm install com.codacy:codacy-coverage-reporter:assembly'
+```
+
+The `CODACY_PROJECT_TOKEN` is encrupted using the Travis command line client in the project Git checkout working directory:
+
+```
+$ travis encrypt CODACY_PROJECT_TOKEN=<secret...>
+```
+
+And add it to the `.travis.yml`:
+
+```
+env:
+    global:
+        # CODACY_PROJECT_TOKEN=<secret...>
+        - secure: "gbK0c3IbHze8..."
+```
+
+And the actual script is run in the `after_success` step. The setup below shares the Jacoco report generation step
+between Coveralls and Codacy. If the project does not use Coveralls, skip the `coveralls:report` step:
+
+```
+after_success:
+    # Coverage report to coveralls.io (but not for pull requests)
+    - '[ "${TRAVIS_PULL_REQUEST}" = "false" ] && mvn clean test jacoco:report coveralls:report'
+    # The following needs to be repeated for every module (may want to script it at some point)
+    - '[ "${TRAVIS_PULL_REQUEST}" = "false" ] && codacy-coverage-reporter -l Java -r <module rel path>/target/site/jacoco/jacoco.xml --prefix <module rel path>/src/main/java/'
+```
+
 ## Eclipse Setup
 
 Additional Eclipse setup steps:
@@ -349,34 +504,6 @@ T.B.D.
 	* The site staging is being replaced with the `mvn-site-stage.sh` script.
 * To clean up the checked out `gh-pages` repository: `ls | grep -v '.project' | grep -v '.nojekyll' | grep -v '.git' | grep -v '.gitignore' | xargs rm -r`
 * Copy the staged site there; then do a commit and push.
-
-### Running Coveralls locally
-
-The project is set up to upload Jacoco code coverage reports to [coveralls.io](https://coveralls.io/github/deventropy/junit-helper)
-using the `org.eluder.coveralls:coveralls-maven-plugin` plugin. This plugin uses a repository token to gain access to
-the project. This token is not part of the POM file and is kept as an environment variable to be picked up by the plugin
-using:
-
-```xml
-<plugin>
-	<groupId>org.eluder.coveralls</groupId>
-	<artifactId>coveralls-maven-plugin</artifactId>
-	<configuration>
-		<repoToken>${env.COVERALLS_REPO_KEY}</repoToken>
-	</configuration>
-</plugin>
-```
-
-__The COVERALLS_REPO_KEY can be found in the pom.xml__
-
-The Travis CI environment already has this value as an encrypted global variable (in `.travis.yml`); but if you need to
-run the coveralls report (and upload results) locally, do the following:
-
-```
-# Set the repository key environment variable (will not work as -DCOVERALLS_REPO_KEY=)
-$ export COVERALLS_REPO_KEY=<key_from_coveralls.io>
-$ mvn clean test jacoco:report coveralls:report
-```
 
 ## Issue Management
 
