@@ -45,6 +45,10 @@ code, issue tracker, etc.
 The project uses [Travis CI's](http://travis-ci.org/) free service for open source projects for continuous integration.
 See the [organization's Travis CI page](https://travis-ci.org/deventropy/) for build status and details.
 
+Most projects use [AppVeyor's](https://www.appveyor.com/) free service for open source projects for continuous
+integration builds on the Windows environment. AppVeyor does not have a public team page, but each project using
+AppVeyor builds will have a badge linking to the projects's AppVeyor page.
+
 The project uses [Coveralls'](http://coveralls.io/) free service for open source projects for tracking unit test
 coverage. See the [organization's Coveralls page](https://coveralls.io/github/deventropy/) for build status and
 details.

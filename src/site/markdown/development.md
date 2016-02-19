@@ -42,6 +42,7 @@ to this branch directly without certain checks, currently:
 
 * Clean merge (without conflicts)
 * Travis CI build pass on the other branch (or pull request)
+* AppVeyor build pass on the other branch (or pull request) (if the project uses AppVeyor)
 
 **NOTE/TODO:** We still have to clarify how the interaction between `master` and `release` branches will work.
 
@@ -122,7 +123,7 @@ The following are recommended (change values per your preference):
 
 The following is required / will be added if using the Travis CI client
 
-* travis.slug=deventropy/junit-helper
+* travis.slug=deventropy/&lt;project-github-name&gt;
 
 #### Storing credentials in GNOME Keyring
 
@@ -264,6 +265,22 @@ There is a mechanism to use JDK 9 EA versions in Travis, but we have not felt th
 To speed up build (and savis the nice folks at Travis some network bandwidth), we cache our local Maven repository
 (`$HOME/.m2/repository`). However, without the just built artifacts, so there is a `before_cache` stage to remove
 files from our group ID: `rm -rf $HOME/.m2/repository/org/deventropy/<group-id>`.
+
+## AppVeyor Build
+
+Though we would love to stick with just Travis, there are still people using Windows, haha. Number of projects use
+[AppVeyor's](https://www.appveyor.com/) free service for open source projects for continuous
+integration builds on the Windows environment.
+
+AppVeyor does not have direct support for Maven or Java builds, so a custom `appveyor.yml` is required to build Java
+projects on Windows on AppVeyor. The config file for `deventropy-parent` could serve as a template for other Deventropy
+projects. See the file at [deventropy/deventropy-parent/appveyor.yml](https://github.com/deventropy/deventropy-parent/blob/master/appveyor.yml).
+
+The following links are reference when we need to alter something:
+
+* [appveyor.yml reference](https://www.appveyor.com/docs/appveyor-yml)
+* [Continuous Integration on Windows, with Appveyor and Maven](http://www.yegor256.com/2015/01/10/windows-appveyor-maven.html)
+* [asciidoctor/asciidoctor-maven-plugin/appveyor.yml](https://github.com/asciidoctor/asciidoctor-maven-plugin/blob/master/appveyor.yml)
 
 ## Coverity Status
 
