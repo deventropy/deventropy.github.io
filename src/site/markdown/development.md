@@ -118,6 +118,7 @@ The following are recommended (change values per your preference):
 * core.repositoryformatversion=0
 * core.filemode=true
 * core.logallrefupdates=true
+* push.default=simple
 
 The following is required / will be added if using the Travis CI client
 
