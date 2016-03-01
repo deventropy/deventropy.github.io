@@ -458,6 +458,86 @@ after_success:
     - '[ "${TRAVIS_PULL_REQUEST}" = "false" ] && codacy-coverage-reporter -l Java -r <module rel path>/target/site/jacoco/jacoco.xml --prefix <module rel path>/src/main/java/'
 ```
 
+## VersionEye Setup
+
+Deventropy project's use [VersionEye's](https://www.versioneye.com/organisations/deventropy/projects) free service for
+Open Source projects to track dependency and plug-in versions and licenses.
+
+The projects are setup to upload version updates from builds on the `master` branch on Travis CI through the
+[VersionEye Maven Plug-in](https://github.com/versioneye/versioneye_maven_plugin). This plugin uses a repository token
+to gain access to the project. This token is not part of the POM file and is kept as an environment variable to be
+picked up by the plugin using:
+
+```
+<plugin>
+	<groupId>com.versioneye</groupId>
+	<artifactId>versioneye-maven-plugin</artifactId>
+	<version>3.9.0</version>
+	<configuration>
+		<apiKey>${env.VERSIONEYE_REPO_KEY}</apiKey>
+		<nameStrategy>name</nameStrategy>
+		<organisation>deventropy</organisation>
+		<team>Owners</team>
+	</configuration>
+</plugin>
+```
+
+### VersionEye Nesting
+
+VersionEye projects are set up using a nested modules; the `versioneye-maven-plugin` has the capability to create
+projects directly on versioneye.com; however we have not identified a mechanism to add modules created later on.
+Besides, the plugin also has issues managing the Project Ids (see
+[VersionEye Maven Plugin Issue #48](https://github.com/versioneye/versioneye_maven_plugin/issues/48)).
+
+So, projects should be created on the versioneye.com web interface parsing the GitHub repository and the correct `pom.xml`.
+Once sub modules are created, they get created as individual projects; which need to be moved to the correct parent
+using the `Settings` tab and `Move project under` option.
+
+**TODO:** Figure out how to name the sub-projects once they are parsed from GitHub in the Summary sub tabs.
+
+### Project ID
+
+The `versioneye-maven-plugin` requires each project's `project_id` to be available (including modules). These can be
+set up in the `pom.xml` using the `projectId` configuration parameter; however to avoid repeating the plugin
+configuration in each project, it is maintained in a `src/qa/resources/versioneye.properties` file using the property
+key `project_id`. Note, these are unique for each parent POM and child project.
+
+### Running VersionEye from Travis
+
+The .travis.yml file has the key encrypted and stored as a global variable:
+
+```
+env:
+    global:
+        # VERSIONEYE_REPO_KEY=<secret...>
+        - secure: "iIe2cpGaG..."
+```
+
+The key property is encrypted using the Travis client in the checked out git working directory:
+
+```
+travis encrypt VERSIONEYE_REPO_KEY=<secret...>
+```
+
+In the .travis.yml, the actual upload happens if the build is on the `master` branch for a non pull request build; and
+if the build succeeds.
+
+```
+after_success:
+    # Update dependencies in VersionEye
+    - '[ "${TRAVIS_PULL_REQUEST}" = "false" ] && [ "${TRAVIS_BRANCH}" = "master" ] && mvn com.versioneye:versioneye-maven-plugin:update'
+```
+
+### Running Coveralls locally
+
+If you need to update dependency and plug-in information to VersionEye locally, do the following:
+
+```
+# Set the API key environment variable (will not work as -DVERSIONEYE_REPO_KEY=)
+$ export VERSIONEYE_REPO_KEY=<API_key_from_versioneye.com>
+$ mvn com.versioneye:versioneye-maven-plugin:update
+```
+
 ## Eclipse Setup
 
 Additional Eclipse setup steps:
