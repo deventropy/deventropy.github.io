@@ -20,11 +20,11 @@ limitations under the License.
 	<parent>
 		<groupId>org.deventropy.parent</groupId>
 		<artifactId>deventropy-parent</artifactId>
-		<version>1.0-beta.1-SNAPSHOT</version>
+		<version>1.0-alpha.site.3.6.1-SNAPSHOT</version>
 	</parent>
 	<groupId>org.deventropy.site</groupId>
 	<artifactId>deventropy-github-io</artifactId>
-	<version>1.0-SNAPSHOT</version>
+	<version>1.0-alpha.site.3.6.1-SNAPSHOT</version>
 	<packaging>pom</packaging>
 	<name>Deventropy Site</name>
 	<description>Deventropy Site sources</description>
@@ -53,7 +53,7 @@ limitations under the License.
 					<dependency>
 						<groupId>lt.velykis.maven.skins</groupId>
 						<artifactId>reflow-velocity-tools</artifactId>
-						<version>1.1.1</version>
+						<version>1.2-SNAPSHOT</version>
 					</dependency>
 					<!-- Reflow skin requires Velocity >= 1.7  -->
 					<dependency>

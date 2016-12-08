@@ -14,13 +14,14 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 -->
-<project xmlns="http://maven.apache.org/DECORATION/1.6.0"
+<project xmlns="http://maven.apache.org/DECORATION/1.7.0"
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:schemaLocation="http://maven.apache.org/DECORATION/1.6.0 http://maven.apache.org/xsd/decoration-1.6.0.xsd">
+	xsi:schemaLocation="http://maven.apache.org/DECORATION/1.7.0 http://maven.apache.org/xsd/decoration-1.7.0.xsd">
+	<!-- See https://maven.apache.org/plugins/maven-site-plugin/migrate.html -->
 	<skin>
 		<groupId>lt.velykis.maven.skins</groupId>
 		<artifactId>reflow-maven-skin</artifactId>
-		<version>1.1.1</version>
+		<version>1.2-SNAPSHOT</version>
 	</skin>
 	<custom>
 		<reflowSkin>
@@ -69,8 +70,10 @@ limitations under the License.
 	
 	<body>
 		<head>
+			<![CDATA[
 			<link rel="author" href="http://blog.bindul.name/"/>
 			<meta name="description" content="Development Entropy software projects" />
+			]]>
 		</head>
 		
 		<links>
