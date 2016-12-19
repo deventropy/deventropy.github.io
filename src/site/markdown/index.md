@@ -34,6 +34,7 @@ The collection has the following project's at this time...
 | [JUnit Helper](./junit-helper/) | In development | A collection of modules to help write / run JUnit tests; specially when using _server_ like resources like Derby database, HTTP server, etc. |
 | [Script Packager](./script-packager/) | Idea | An idea to manage *nix shell script sources, reuse script modules, etc. Package and generate deployments using maven. |
 | [Shared Utils](./shared-utils/) | In development | Shared classes across the projects above. |
+| [Site Skins](./site-skins/) | Idea | A proposed skin and tools based on Bootswatch/Bootstrap and Velocity, to replace the current `reflow-maven-skin` which is no longer being maintained and does not support newer versionf of `maven-site-plugin`. |
 | Deventropy Parent | In development | Parent project, shared code quality configs, etc. |
 | [Infix](http://infix.deventropy.org) | Idea | A collection of useful Maven plugins. _Possibly will get folded into deventropy_ | 
 

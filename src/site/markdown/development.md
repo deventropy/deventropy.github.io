@@ -375,74 +375,96 @@ CI builds at Travis CI. Codacy has has an [API Integration point](https://api.co
 to send coverage information to be integrated into the code analysis information. They also provide a tool to upload
 coverage information from some standard code coverage tools.
 
-### Codacy client
+### Codacy Maven plugin
 
-The [Codacy Coverage Reporter](https://github.com/codacy/codacy-coverage-reporter#setup) uses [JPM](http://jpm4j.org/)
-to install and maintain dependencies. The instructions on the Codacy Coverage Reporter GitHub project README page to
-install JPM do not work; instead use the instructions on the [JPM site](http://jpm4j.org/#!/md/linux). The instructions
-to install the Codacy tool however does work:
+> The project used to use the [Codacy Coverage Reporter](https://github.com/codacy/codacy-coverage-reporter#setup), which uses [JPM](http://jpm4j.org/) to install and maintain dependencies.
+> We ran into a few challenges and issues with this approach:
+> First, the tool is not aware of Maven multi-module project setup; so required an extra line in the `.travis.yml` file for each module
+> Second, the short link to the JPM installer broke, and is a long changing link now
 
-```
-$ jpm install com.codacy:codacy-coverage-reporter:assembly
-```
+The project uses the [Codacy Maven Plugin](https://github.com/halkeye/codacy-maven-plugin) to upload the coverage
+reports to Codacy for analysis. The plugin is primarily configured in the `org.deventropy.parent:deventropy-parent`
+(version *1.0-beta.1* or higher), as:
 
-Since most, if not all, Deventropy projects are setup as Maven multi module projects; the coverage information either
-has to be merged into a single one or uploaded individually for each module. For the time being we have not been
-able to get Jacoco to generate a single report for a multi-module project; so we are left with uploading reports for
-individual modules:
-
-```
-$ codacy-coverage-reporter -l Java -r <module path>/target/site/jacoco/jacoco.xml --prefix <module path>/src/main/java/
-```
-
-This requires an environment variable `CODACY_PROJECT_TOKEN` set with the project API key from the Codacy project page.
-
-### Running coveralls locally
-
-JPM and Codacy are usually installed locally in a shared / super user mode:
-
-```
-$ curl -sL http://bit.ly/jpm4j > jpm4j.jar
-$ sudo java -jar jpm4j.jar -g init
-$ sudo jpm install com.codacy:codacy-coverage-reporter:assembly
+```xml
+<!-- Upload code coverage reports to codacy.com -->
+<plugin>
+	<groupId>com.gavinmogan</groupId>
+	<artifactId>codacy-maven-plugin</artifactId>
+	<version>1.0.3</version>
+	<configuration>
+		<apiToken>${env.CODACY_API_TOKEN}</apiToken>
+		<projectToken>${env.CODACY_PROJECT_TOKEN}</projectToken>
+		<language>Java</language>
+		<coverageReportFile>${project.build.directory}/site/jacoco/jacoco.xml</coverageReportFile>
+		<failOnMissingReportFile>false</failOnMissingReportFile>
+		<prefix>${codacy.project.prefix}</prefix>
+	</configuration>
+</plugin>
 ```
 
-__Note the last step might take a minute, and look like it is stuck__
+Unlike the *Codacy Coverage Reporter*, the plugin requires not only the project specific API token (usualy configured
+as an environment variable `CODACY_PROJECT_TOKEN`), but also an API token from someone with access to the projects
+at Codacy (configured as an environment variable `CODACY_API_TOKEN`).
 
-Export the key for the project, run the Jacoco reports and upload the reports for each module:
+The plug-in has been configured to use the following input / config at each project and module:
+
+| Parameter		| Summary							| Configured value / reference							| Project Specific Configuration Required																			|
+|---------------|-----------------------------------|-------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------|
+| API Token		| The upload API Token				| Env variable `CODACY_API_TOKEN`						| Set in the build environment or can be overridden using `-DapiToken=` CLI override								|
+| Project Token | The project Token					| Env variable `CODACY_PROJECT_TOKEN`					| Set in the build environment or can be overridden using `-DprojectToken=` CLI override							|
+| Language		| Code Language						| Java													| No																												|
+| Coverage File | Either a Jacoco or Cobertura file	| `${project.build.directory}/site/jacoco/jacoco.xml`	| None, unless the project is configured to write JaCoCo report from the `jacoco:report` execution somewhere else	|
+| Prefix		| Prefix for multi-module projects	| Property `${codacy.project.prefix}`					| Should be set at the leaf projects to point to the Java source folder relative to the Git repository root			|
+
+### Running Codacy coverage locally
+
+Codacy tries to tie the uploaded coverage information to a commit, so if you are running this locally against a commit
+that has not been pushed upstream, the uploaded coverage information will most likely just be ignored.
+
+Obtain the API and Project tokens and export them as `CODACY_API_TOKEN` and `CODACY_PROJECT_TOKEN` respectively. If not,
+both of these have to be added to the Maven runtime as `-DapiToken=` and `-DprojectToken=` respectively.
+
+Then make sure Maven is executed to the `test` phase with the `jacoco:report` plugin; then execute the `codacy:coverage` 
+plugin. Note, it is possible to execute all the Maven goals in a single executable
 
 ```
+$ export CODACY_API_TOKEN=<secret...>
 $ export CODACY_PROJECT_TOKEN=<secret...>
-$ mvn clean test jacoco:report
-# Repeat the following for each module
-$ codacy-coverage-reporter -l Java -r <module path>/target/site/jacoco/jacoco.xml --prefix <module path>/src/main/java/
+$ mvn clean test jacoco:report codacy:coverage
 ```
 
-<!--TODO Look to script this so as not to need to know the module names; or write a Maven plugin-->
+OR
+
+```
+$ mvn -DapiToken=<secret...> -DprojectToken=<secret...> clean test jacoco:report codacy:coverage
+```
+
+<!--TODO Relook at this when we have UT reports, do we ignore them or do we have to merge the reports-->
 
 ### Uploading coverage from Travis
 
 The Travis build config, `.travis.yml` is configured to generate and upload the coverage information for each build
 automatically.
 
-Install `JPM` and `codacy-coverage-reporter`; and update the `PATH` before the build:
+The `CODACY_API_TOKEN` and `CODACY_PROJECT_TOKEN` is encrupted using the Travis command line client in the project Git
+checkout working directory:
 
 ```
-before_install:
-    - 'mkdir --parents target/jpm && curl -sL http://bit.ly/jpm4j > target/jpm/jpm4j.jar && java -jar target/jpm/jpm4j.jar -u init && export PATH=$PATH:$HOME/jpm/bin && jpm install com.codacy:codacy-coverage-reporter:assembly'
-```
-
-The `CODACY_PROJECT_TOKEN` is encrupted using the Travis command line client in the project Git checkout working directory:
-
-```
+$ travis encrypt CODACY_API_TOKEN=<secret...>
 $ travis encrypt CODACY_PROJECT_TOKEN=<secret...>
 ```
+
+*Note:* At this point, there is no way to obtain a API token for Codacy for a GitHub org, so all uploads run on an API 
+token from Bindul's account.
 
 And add it to the `.travis.yml`:
 
 ```
 env:
     global:
+    	# CODACY_API_TOKEN=<secret...>
+        - secure: "uhVAyeF..."
         # CODACY_PROJECT_TOKEN=<secret...>
         - secure: "gbK0c3IbHze8..."
 ```
@@ -452,10 +474,8 @@ between Coveralls and Codacy. If the project does not use Coveralls, skip the `c
 
 ```
 after_success:
-    # Coverage report to coveralls.io (but not for pull requests)
-    - '[ "${TRAVIS_PULL_REQUEST}" = "false" ] && mvn clean test jacoco:report coveralls:report'
-    # The following needs to be repeated for every module (may want to script it at some point)
-    - '[ "${TRAVIS_PULL_REQUEST}" = "false" ] && codacy-coverage-reporter -l Java -r <module rel path>/target/site/jacoco/jacoco.xml --prefix <module rel path>/src/main/java/'
+    # Coverage report to coveralls.io and codacy.com (but not for pull requests)
+    - '[ "${TRAVIS_PULL_REQUEST}" = "false" ] && mvn clean test jacoco:report coveralls:report codacy:coverage'
 ```
 
 ## VersionEye Setup
