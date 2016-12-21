@@ -95,12 +95,14 @@ limitations under the License.
 		</menu>
 		<menu name="Development" inherit="bottom">
 			<item name="Development Guide" href="./development.html" />
-			<item name="CI - Travis" href="https://travis-ci.org/deventropy/" />
-			<item name="CI - Appveyor" href="https://ci.appveyor.com/projects" />
-			<item name="Coveralls" href="https://coveralls.io/github/deventropy/" />
-			<item name="Codacy" href="https://www.codacy.com/app/deventropy" />
-			<item name="Coverity Scan" href="https://scan.coverity.com/" />
-			<item name="VersionEye" href="https://www.versioneye.com/organisations/deventropy/projects" />
+			<item name="Code Quality / Continuous Integration" href="#">
+				<item name="CI - Travis" href="https://travis-ci.org/deventropy/" />
+				<item name="CI - Appveyor" href="https://ci.appveyor.com/projects" />
+				<item name="Coveralls" href="https://coveralls.io/github/deventropy/" />
+				<item name="Codacy" href="https://www.codacy.com/app/deventropy" />
+				<item name="Coverity Scan" href="https://scan.coverity.com/" />
+				<item name="VersionEye" href="https://www.versioneye.com/organisations/deventropy/projects" />
+			</item>
 			<item name="JFrog Bintray" href="https://dl.bintray.com/deventropy/repository" />
 			<item name="Mailing Lists" href="https://sourceforge.net/p/deventropy/lists/" />
 		</menu>
